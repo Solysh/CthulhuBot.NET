@@ -5,6 +5,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration.Yaml;
+using CthulhuBot.Modules;
+using Discord.Commands;
+using Discord;
 
 namespace CthulhuBot
 {
@@ -32,7 +35,7 @@ namespace CthulhuBot
             // Add the DiscordSocketClient, along with specifying the GatewayIntents and user caching
             .AddSingleton(x => new DiscordSocketClient(new DiscordSocketConfig
             {
-                GatewayIntents = Discord.GatewayIntents.All,
+                GatewayIntents = Discord.GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent,
                 AlwaysDownloadUsers = true,
                 LogLevel = Discord.LogSeverity.Debug
             }))
@@ -62,7 +65,8 @@ namespace CthulhuBot
             _client.Log += _ => provider.GetRequiredService<ConsoleLogger>().Log(_);
             // Subscribe to slash command log events
             commands.Log += _ => provider.GetRequiredService<ConsoleLogger>().Log(_);
-
+            // Subscribe to channel messages
+            _client.MessageReceived += OnMessageReceived;
             _client.Ready += async () =>
             {
                 // If running the bot with DEBUG flag, register all commands to guild specified in config
@@ -74,11 +78,42 @@ namespace CthulhuBot
                     await commands.RegisterCommandsGloballyAsync(true);
             };
 
-
             await _client.LoginAsync(Discord.TokenType.Bot, config["tokens:discord"]);
             await _client.StartAsync();
 
             await Task.Delay(-1);
+        }
+
+        private async Task OnMessageReceived(SocketMessage socketMessage)
+        {
+            // Channel Id of #general
+            ulong guildId = 722900872006205524;
+            ulong channelPlayerIntroId = 722903689790095421;
+            ulong channelGeneralId = 722903613328064542;
+            ulong removedRoles = 929107169083801600;
+            ulong addedRoles = 1091762487180918864;
+
+            int messageLength = socketMessage.Content.Length;
+
+            // We only want messages sent by real users 
+            if (!(socketMessage is SocketUserMessage message))
+                return;
+
+            // This message handler would be called infinitely
+            if (message.Author.Id == _client.CurrentUser.Id)
+                return;            
+
+            // Only answer if the channel is #player-introductions and message is over 40 characters
+            if (socketMessage.Channel.Id == channelPlayerIntroId && messageLength > 40)
+            {
+                var user = (IGuildUser)message.Author;
+
+                await socketMessage.Channel.SendMessageAsync($"Nice to meet you, {message.Author.Mention}!", messageReference: new Discord.MessageReference(message.Id));
+                await _client.GetGuild(guildId).GetTextChannel(channelGeneralId).SendMessageAsync($"Hey everyone! Please welcome {socketMessage.Author.Mention} to Cthulhu's List Gaming Board!  You can learn more about them over at https://discord.com/channels/{guildId}/{socketMessage.Channel.Id}/{socketMessage.Id}");
+
+                //await user.RemoveRoleAsync(removedRoles);
+                await user.AddRoleAsync(addedRoles);
+            }
         }
 
         static bool IsDebug()

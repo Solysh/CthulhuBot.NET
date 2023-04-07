@@ -49,7 +49,7 @@ namespace CthulhuBot.Modules
                 {
                     //var embedElement = new EmbedBuilder().WithTitle("Player Introductions Flagged for Deletion");
 
-                    Context.Channel.SendMessageAsync($"{message.Author.Username} is no longer in the server.  Deleting introduction.");
+                    await Context.Channel.SendMessageAsync($"{message.Author.Username} is no longer in the server.  Deleting introduction.");
                     //embedElement.AddField($"Player: {message.Author.ToString()}", $"Message Id: {message.Id.ToString()}");
                     await textChannel.DeleteMessageAsync(message.Id);
                     //Context.Channel.SendMessageAsync($"Deleteing {message.Id}");

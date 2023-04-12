@@ -1,18 +1,20 @@
-﻿FROM mcr.microsoft.com/dotnet/runtime:6.0 AS base
+FROM mcr.microsoft.com/dotnet/runtime:6.0 AS base
 WORKDIR /app
 
+# Copy csproj and restore as distinct layers
+COPY *.csproj ./
+COPY NuGet.Config ./ 
+RUN dotnet restore
+
+# Copy everything else and build
+COPY . ./
+RUN dotnet publish -c Release -o out
+
+# Build runtime image
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
-WORKDIR /src
-COPY ["CthulhuBot/CthulhuBot.csproj", "CthulhuBot/"]
-RUN dotnet restore "CthulhuBot/CthulhuBot.csproj"
-COPY . .
-WORKDIR "/src/CthulhuBot"
-RUN dotnet build "CthulhuBot.csproj" -c Release -o /app/build
-
-FROM build AS publish
-RUN dotnet publish "CthulhuBot.csproj" -c Release -o /app/publish
-
-FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=base /app/out .
+
+COPY config.json ./
+COPY emotes.json ./
 ENTRYPOINT ["dotnet", "CthulhuBot.dll"]

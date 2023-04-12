@@ -22,7 +22,7 @@
 
     <ItemGroup>
       <None Update="config.yml">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
       </None>
     </ItemGroup>
 

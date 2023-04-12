@@ -3,7 +3,7 @@ WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["CthulhuBot.NET/CthulhuBot/CthulhuBot.csproj", "CthulhuBot/"]
+COPY ["CthulhuBot/CthulhuBot.csproj", "CthulhuBot/"]
 RUN dotnet restore "CthulhuBot/CthulhuBot.csproj"
 COPY . .
 WORKDIR "/src/CthulhuBot"

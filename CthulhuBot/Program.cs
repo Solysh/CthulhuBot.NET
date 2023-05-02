@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration.Yaml;
 using CthulhuBot.Modules;
 using Discord.Commands;
 using Discord;
+using System.Net.Sockets;
 
 namespace CthulhuBot
 {
@@ -35,7 +36,7 @@ namespace CthulhuBot
             // Add the DiscordSocketClient, along with specifying the GatewayIntents and user caching
             .AddSingleton(x => new DiscordSocketClient(new DiscordSocketConfig
             {
-                GatewayIntents = Discord.GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent,
+                GatewayIntents = Discord.GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent | GatewayIntents.GuildMembers,
                 AlwaysDownloadUsers = true,
                 LogLevel = Discord.LogSeverity.Debug
             }))
@@ -67,6 +68,8 @@ namespace CthulhuBot
             commands.Log += _ => provider.GetRequiredService<ConsoleLogger>().Log(_);
             // Subscribe to channel messages
             _client.MessageReceived += OnMessageReceived;
+            // Subscribe to guild member updates
+            _client.GuildMemberUpdated += OnMemberUpdated;
             _client.Ready += async () =>
             {
                 // If running the bot with DEBUG flag, register all commands to guild specified in config
@@ -84,13 +87,27 @@ namespace CthulhuBot
             await Task.Delay(-1);
         }
 
+        private async Task OnMemberUpdated(Cacheable<SocketGuildUser, ulong> cachedUser, SocketGuildUser guild)
+        {
+            ulong guildId = 722900872006205524;
+            ulong channelGeneralId = 722903613328064542;
+
+            var user = await cachedUser.GetOrDownloadAsync().ConfigureAwait(false);
+
+            if (!user.Roles.Any(role => role.Name == "Verified").Equals(guild.Roles.Any(role => role.Name == "Verified")))
+            {
+                await _client.GetGuild(guildId).GetTextChannel(channelGeneralId).SendMessageAsync($"Please welcome our newest member {user.Mention} to Cthulhu's List Gaming Board!");
+            }
+
+        }
+
         private async Task OnMessageReceived(SocketMessage socketMessage)
         {
             // Channel Id of #general
             ulong guildId = 722900872006205524;
             ulong channelPlayerIntroId = 722903689790095421;
             ulong channelGeneralId = 722903613328064542;
-            ulong removedRoles = 929107169083801600;
+            // ulong removedRoles = 929107169083801600;
             ulong addedRoles = 1091762487180918864;
 
             int messageLength = socketMessage.Content.Length;

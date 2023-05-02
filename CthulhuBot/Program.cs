@@ -94,6 +94,8 @@ namespace CthulhuBot
 
             var user = await cachedUser.GetOrDownloadAsync().ConfigureAwait(false);
 
+            Console.WriteLine("OnMemberUpdated Called!");
+
             if (!user.Roles.Any(role => role.Name == "Verified").Equals(guild.Roles.Any(role => role.Name == "Verified")))
             {
                 // await _client.GetGuild(guildId).GetTextChannel(channelGeneralId).SendMessageAsync($"Please welcome our newest member {user.Mention} to Cthulhu's List Gaming Board!");

@@ -96,7 +96,8 @@ namespace CthulhuBot
 
             if (!user.Roles.Any(role => role.Name == "Verified").Equals(guild.Roles.Any(role => role.Name == "Verified")))
             {
-                await _client.GetGuild(guildId).GetTextChannel(channelGeneralId).SendMessageAsync($"Please welcome our newest member {user.Mention} to Cthulhu's List Gaming Board!");
+                // await _client.GetGuild(guildId).GetTextChannel(channelGeneralId).SendMessageAsync($"Please welcome our newest member {user.Mention} to Cthulhu's List Gaming Board!");
+                Console.WriteLine("User Now Verified!");
             }
 
         }
